@@ -181,3 +181,12 @@
 [init]
 
 	defaultBranch = main
+
+[gpg]
+
+  program = gpg
+
+[user]
+
+  name = Ross Kuyper
+  email = ross@rosskuyper.com

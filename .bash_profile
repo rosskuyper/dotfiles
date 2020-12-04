@@ -34,6 +34,9 @@ elif [ -f /etc/bash_completion ]; then
 	source /etc/bash_completion;
 fi;
 
+# Load git completion manually
+source "/Library/Developer/CommandLineTools/usr/share/git-core/git-completion.bash"
+
 # Enable tab completion for `g` by marking it as an alias for `git`
 if type _git &> /dev/null; then
 	complete -o default -o nospace -F _git g;
