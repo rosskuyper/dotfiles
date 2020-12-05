@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+PROFILE=$1
+
+aws sts get-caller-identity \
+  --profile $PROFILE \
+  --query Account \
+  --output text
