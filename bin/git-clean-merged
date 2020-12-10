@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# https://stackoverflow.com/questions/6127328/how-can-i-delete-all-git-branches-which-have-been-merged
+
+git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d
