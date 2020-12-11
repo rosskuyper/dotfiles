@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mv ~/Downloads/`ls -tr ~/Downloads | tail -n 1` .
