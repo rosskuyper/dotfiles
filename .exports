@@ -37,7 +37,10 @@ export GPG_TTY=$(tty);
 export BASH_SILENCE_DEPRECATION_WARNING=1;
 
 # M1 Manually installed java
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-16+10/Contents/Home
+# export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-16+10/Contents/Home
+
+# Android studio bundled JDK (required for React Native)
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home"
 
 # Android Studio / React Native setup
 export ANDROID_HOME=$HOME/Library/Android/sdk
