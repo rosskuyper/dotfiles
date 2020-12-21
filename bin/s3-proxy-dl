@@ -1,0 +1,28 @@
+#!/bin/bash
+
+URL=$1
+TMPFILE=$(mktemp /tmp/s3-proxy-dl.XXXXXX)
+
+echo "Downloading file to S3"
+
+# This is a custom lambda - not generally or publicly available
+aws lambda invoke \
+  --function-name download-to-s3 \
+  --cli-binary-format raw-in-base64-out \
+  --payload "{\"url\": \"$URL\"}" \
+  $TMPFILE
+
+KEY=$(jq --raw-output .Key $TMPFILE)
+BUCKET=$(jq --raw-output .Bucket $TMPFILE)
+FILENAME=$(jq --raw-output .FileName $TMPFILE)
+
+echo "Downloading file from S3"
+aws s3 cp s3://$BUCKET/$KEY ~/Downloads/$FILENAME
+
+echo "Deleting file on S3"
+aws s3 rm s3://$BUCKET/$KEY
+
+echo "Local clean up"
+rm -f $TMPFILE
+
+echo "~/Downloads/$FILENAME"
