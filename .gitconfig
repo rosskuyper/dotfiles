@@ -190,3 +190,7 @@
 
   name = Ross Kuyper
   email = ross@rosskuyper.com
+
+[pull]
+
+  rebase = false
