@@ -153,3 +153,7 @@ alias path='echo -e ${PATH//:/\\n}'
 
 # Git push and set upstream automatically
 alias gpu='[[ -z $(git config "branch.$(git symbolic-ref --short HEAD).merge") ]] && git push -u origin $(git symbolic-ref --short HEAD) || git push'
+
+# pip and python default to 3
+alias python="/opt/homebrew/bin/python3"
+alias pip="/opt/homebrew/bin/pip3"
