@@ -1,20 +1,36 @@
 #!/usr/bin/env bash
 
-fuzzy-find-branch() {
+fzf-git-branch() {
   git rev-parse HEAD >/dev/null 2>&1 || return
 
   git branch --color=always --sort=-committerdate |
     grep -v HEAD |
-    fzf --height 50% --ansi --no-multi |
+    fzf --height 30 --ansi --no-multi --preview-window 'right,65%' \
+      --preview 'git log -n 28 --color=always --reverse --date=short --pretty="format:%C(auto)%cd %h%d %s" $(sed "s/.* //" <<< {})' |
     sed "s/.* //"
 }
 
 checkout-branch() {
-  branch=$(fuzzy-find-branch)
+  git rev-parse HEAD >/dev/null 2>&1 || return
+
+  local branch
+
+  branch=$(fzf-git-branch)
+  if [[ "$branch" = "" ]]; then
+    echo "No branch selected."
+    return
+  fi
 
   history -s "git checkout $branch"
-  history -s "checkout-branch"
-  git checkout "$branch"
+
+  # If branch name starts with 'remotes/' then it is a remote branch. By
+  # using --track and a remote branch name, it is the same as:
+  # git checkout -b branchName --track origin/branchName
+  if [[ "$branch" = 'remotes/'* ]]; then
+    git checkout --track $branch
+  else
+    git checkout $branch
+  fi
 }
 
 # Create a new directory and enter it
