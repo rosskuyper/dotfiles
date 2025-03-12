@@ -13,6 +13,7 @@ checkout-branch() {
   branch=$(fuzzy-find-branch)
 
   history -s "git checkout $branch"
+  history -s "checkout-branch"
   git checkout "$branch"
 }
 
