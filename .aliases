@@ -157,3 +157,6 @@ alias gpu='[[ -z $(git config "branch.$(git symbolic-ref --short HEAD).merge") ]
 # pip and python default to 3
 alias python="/opt/homebrew/bin/python3"
 alias pip="/opt/homebrew/bin/pip3"
+
+alias prm="~/bin/pr-post.sh"
+alias gb="checkout-branch"

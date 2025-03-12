@@ -1,8 +1,11 @@
 # Add `~/bin` to the `$PATH`
 export PATH="$HOME/bin:$PATH";
 
+# Add Homebrew
+export PATH="/opt/homebrew/bin:$PATH";
+
 # npm global
-export PATH=~/.npm-global/bin:$PATH
+export PATH="~/.npm-global/bin:$PATH";
 
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.

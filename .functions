@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 
+fuzzy-find-branch() {
+  git rev-parse HEAD >/dev/null 2>&1 || return
+
+  git branch --color=always --sort=-committerdate |
+    grep -v HEAD |
+    fzf --height 50% --ansi --no-multi |
+    sed "s/.* //"
+}
+
+checkout-branch() {
+  branch=$(fuzzy-find-branch)
+
+  print -s "git checkout $branch"
+  git checkout "$branch"
+}
+
 # Create a new directory and enter it
 function mkd() {
 	mkdir -p "$@" && cd "$_";
