@@ -10,10 +10,11 @@ function showDiff() {
 		--exclude ".DS_Store" \
 		--exclude ".vscode" \
 		--exclude ".osx" \
+		--exclude ".claude/" \
 		--exclude "bootstrap.sh" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
-		--dry-run --itemize-changes --no-perms . ~ 2>/dev/null \
+		-avh --dry-run --itemize-changes --no-perms . ~ 2>/dev/null \
 		| grep '^>f' \
 		| awk '{print $2}')
 
@@ -41,6 +42,7 @@ function doIt() {
 		--exclude ".DS_Store" \
 		--exclude ".vscode" \
 		--exclude ".osx" \
+		--exclude ".claude/" \
 		--exclude "bootstrap.sh" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
