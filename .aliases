@@ -160,3 +160,16 @@ alias pip="/opt/homebrew/bin/pip3"
 
 alias prm="~/bin/pr-post.sh"
 alias gb="checkout-branch"
+
+alias grm="git rebase main"
+alias gcm="git checkout main"
+alias gpl="git pull"
+alias gps="git push"
+alias gpf="git push --force-with-lease"
+alias gfr="git fetch origin && git rebase origin/main"
+alias gsb="git checkout -"
+alias gc="git checkout"
+alias gf="git fetch"
+
+alias cc="caffeinate claude"
+alias ccp="CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude"
