@@ -1,0 +1,279 @@
+{
+  "commands": [
+    {
+      "name": "Claude (Maze)",
+      "keywords": [
+        "claude",
+        "maze"
+      ],
+      "command": "caffeinate claude",
+      "confirm": false
+    },
+    {
+      "name": "Claude (Personal)",
+      "keywords": [
+        "claude",
+        "personal"
+      ],
+      "command": "CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude",
+      "confirm": false
+    },
+    {
+      "name": "Tilt",
+      "keywords": [
+        "tilt"
+      ],
+      "command": "cd \"$(git rev-parse --show-toplevel)\" && tilt up",
+      "confirm": false
+    },
+    {
+      "name": "Prisma Migrate Deploy (Moderated)",
+      "keywords": [
+        "prisma",
+        "migrate",
+        "deploy",
+        "moderated"
+      ],
+      "command": "cd \"$(git rev-parse --show-toplevel)/services/service-moderated-testing\" && pnpm prisma migrate deploy",
+      "confirm": false
+    },
+    {
+      "name": "Monorepo Tunnels",
+      "keywords": [
+        "tunnels",
+        "monorepo",
+        "cloudflared"
+      ],
+      "command": "cloudflared tunnel --config /Users/ross/projects/maze/tunnels/config.yml run",
+      "confirm": false
+    },
+    {
+      "name": "Monorepo Dev",
+      "keywords": [
+        "monorepo",
+        "dev"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "Monorepo Dev",
+        "cwd": "~/projects/maze/maze-monorepo",
+        "layout": {
+          "direction": "vertical",
+          "split": 0.3,
+          "children": [
+            {
+              "pane": {
+                "surfaces": [
+                  {
+                    "type": "terminal",
+                    "name": "Tilt",
+                    "command": "tilt up",
+                    "focus": true
+                  }
+                ]
+              }
+            },
+            {
+              "pane": {
+                "surfaces": [
+                  {
+                    "type": "terminal",
+                    "name": "Tunnels",
+                    "command": "cloudflared tunnel --config /Users/ross/projects/maze/tunnels/config.yml run"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Monorepo Code",
+      "keywords": [
+        "mono",
+        "monorepo",
+        "code"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "Monorepo Code",
+        "cwd": "~/projects/maze/maze-monorepo",
+        "layout": {
+          "pane": {
+            "surfaces": [
+              {
+                "type": "terminal",
+                "name": "Claude",
+                "command": "caffeinate claude",
+                "focus": true
+              },
+              {
+                "type": "terminal",
+                "name": "VS Code",
+                "command": "code ."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "cmux",
+      "keywords": [
+        "cmux",
+        "config"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "cmux",
+        "cwd": "~/.config/cmux",
+        "layout": {
+          "pane": {
+            "surfaces": [
+              {
+                "type": "terminal",
+                "name": "Claude",
+                "command": "CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude",
+                "focus": true
+              },
+              {
+                "type": "terminal",
+                "name": "VS Code",
+                "command": "code ."
+              },
+              {
+                "type": "terminal",
+                "name": "Terminal"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Dotfiles",
+      "keywords": [
+        "dotfiles",
+        "personal"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "Dotfiles",
+        "cwd": "~/projects/personal/dotfiles",
+        "layout": {
+          "pane": {
+            "surfaces": [
+              {
+                "type": "terminal",
+                "name": "Claude",
+                "command": "CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude",
+                "focus": true
+              },
+              {
+                "type": "terminal",
+                "name": "VS Code",
+                "command": "code ."
+              },
+              {
+                "type": "terminal",
+                "name": "Terminal"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Pedro",
+      "keywords": [
+        "pedro",
+        "personal"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "Pedro",
+        "cwd": "~/projects/personal/pedro",
+        "layout": {
+          "pane": {
+            "surfaces": [
+              {
+                "type": "terminal",
+                "name": "Claude",
+                "command": "CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude",
+                "focus": true
+              },
+              {
+                "type": "terminal",
+                "name": "VS Code",
+                "command": "code ."
+              },
+              {
+                "type": "terminal",
+                "name": "Terminal"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Country",
+      "keywords": [
+        "country",
+        "personal"
+      ],
+      "restart": "confirm",
+      "workspace": {
+        "name": "Country",
+        "cwd": "~/projects/personal/country",
+        "layout": {
+          "direction": "horizontal",
+          "split": 0.5,
+          "children": [
+            {
+              "pane": {
+                "surfaces": [
+                  {
+                    "type": "terminal",
+                    "name": "Claude",
+                    "command": "CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude",
+                    "focus": true
+                  }
+                ]
+              }
+            },
+            {
+              "direction": "vertical",
+              "split": 0.5,
+              "children": [
+                {
+                  "pane": {
+                    "surfaces": [
+                      {
+                        "type": "browser",
+                        "name": "Browser",
+                        "url": "http://localhost:3000"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "pane": {
+                    "surfaces": [
+                      {
+                        "type": "terminal",
+                        "name": "Dev Server",
+                        "command": "npm run dev"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
