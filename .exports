@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 # Make vim the default editor.
-export EDITOR="/Applications/Visual Studio Code.app/Contents/MacOS/Code"
+export EDITOR="/Applications/Visual\ Studio\ Code.app/Contents/MacOS/Code"
+
+# Don't open an editor when rebasing etc
+export GIT_EDITOR=true
 
 # Enable persistent REPL history for `node`.
 export NODE_REPL_HISTORY=~/.node_history;
@@ -55,3 +58,5 @@ export PATH=$PATH:/Library/PostgreSQL/14/bin
 # pnpm
 export PNPM_HOME="/Users/ross/Library/pnpm"
 export PATH="$PNPM_HOME:$PATH"
+
+export CLAUDE_PLUGINS_REPO=git@github.com:mazedesignhq/claude-plugins.git

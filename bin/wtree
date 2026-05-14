@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+  echo "Usage: wtree <branch> [<sourceBranch>]" >&2
+  exit 1
+fi
+
+branch="$1"
+source_branch="${2:-}"
+
+if [[ "$branch" == *-* ]]; then
+  folder=$(echo "$branch" | cut -d'-' -f1-5)
+else
+  folder="${branch:0:25}"
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+parent_dir=$(dirname "$repo_root")
+worktree_path="$parent_dir/$folder"
+
+if [ -e "$worktree_path" ]; then
+  echo "Error: $worktree_path already exists" >&2
+  exit 1
+fi
+
+if [ -n "$source_branch" ]; then
+  git worktree add -b "$branch" "$worktree_path" "$source_branch"
+else
+  git worktree add -b "$branch" "$worktree_path"
+fi
+
+echo "Worktree created at: $worktree_path"
+
+if command -v mise >/dev/null 2>&1; then
+  mise trust "$worktree_path"
+fi
+
+if command -v cmux >/dev/null 2>&1; then
+  cmux new-workspace --name "$folder" --cwd "$worktree_path"
+fi
