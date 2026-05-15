@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+  echo "Usage: wrun <branch>" >&2
+  exit 1
+fi
+
+branch="$1"
+
+echo "Checking you're in the main git repo..."
+if ! git_dir=$(git rev-parse --git-dir 2>/dev/null); then
+  echo "Error: not inside a git repository" >&2
+  exit 1
+fi
+git_common_dir=$(git rev-parse --git-common-dir)
+git_dir_abs=$(cd "$git_dir" && pwd)
+git_common_dir_abs=$(cd "$git_common_dir" && pwd)
+if [ "$git_dir_abs" != "$git_common_dir_abs" ]; then
+  echo "Error: wrun must be run from the main repo, not a worktree" >&2
+  exit 1
+fi
+
+echo "Checking main repo working tree is clean..."
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Error: main repo has uncommitted changes — commit or stash before running wrun" >&2
+  exit 1
+fi
+
+echo "Locating worktree for branch '$branch'..."
+worktree_path=$(git worktree list --porcelain | awk -v b="refs/heads/$branch" '
+  /^worktree / { path=substr($0, 10) }
+  $0 == "branch " b { print path; exit }
+')
+if [ -z "$worktree_path" ]; then
+  echo "Error: no worktree found with branch '$branch' checked out" >&2
+  exit 1
+fi
+echo "  Worktree found at $worktree_path"
+
+echo "Checking worktree working tree is clean..."
+if [ -n "$(git -C "$worktree_path" status --porcelain)" ]; then
+  echo "Error: worktree at $worktree_path has uncommitted changes — commit or stash before running wrun" >&2
+  exit 1
+fi
+
+echo "Creating tmp branch in worktree..."
+i=1
+while git show-ref --verify --quiet "refs/heads/$branch-$i"; do
+  i=$((i+1))
+done
+tmp_branch="$branch-$i"
+git -C "$worktree_path" checkout --quiet -b "$tmp_branch"
+echo "  Worktree is now on '$tmp_branch'"
+
+echo "Checking out '$branch' in main repo..."
+git checkout --quiet "$branch"
+
+echo
+echo "Done. Main repo is on '$branch'; worktree at $worktree_path is on '$tmp_branch'."

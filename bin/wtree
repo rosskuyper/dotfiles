@@ -24,7 +24,30 @@ if [ -e "$worktree_path" ]; then
   exit 1
 fi
 
-if [ -n "$source_branch" ]; then
+git fetch
+
+existing_worktree=$(git worktree list --porcelain | awk -v b="refs/heads/$branch" '
+  /^worktree / { path=$2 }
+  $0 == "branch " b { print path; exit }
+')
+if [ -n "$existing_worktree" ]; then
+  echo "Error: branch '$branch' is already checked out at $existing_worktree" >&2
+  exit 1
+fi
+
+if git show-ref --verify --quiet "refs/heads/$branch"; then
+  if [ -n "$source_branch" ]; then
+    echo "Error: branch '$branch' already exists locally; refusing to override with source branch '$source_branch'" >&2
+    exit 1
+  fi
+  git worktree add "$worktree_path" "$branch"
+elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+  if [ -n "$source_branch" ]; then
+    echo "Error: branch '$branch' already exists on origin; refusing to override with source branch '$source_branch'" >&2
+    exit 1
+  fi
+  git worktree add -b "$branch" "$worktree_path" "origin/$branch"
+elif [ -n "$source_branch" ]; then
   git worktree add -b "$branch" "$worktree_path" "$source_branch"
 else
   git worktree add -b "$branch" "$worktree_path"
