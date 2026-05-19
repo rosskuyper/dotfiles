@@ -50,7 +50,7 @@ elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
 elif [ -n "$source_branch" ]; then
   git worktree add -b "$branch" "$worktree_path" "$source_branch"
 else
-  git worktree add -b "$branch" "$worktree_path"
+  git worktree add -b "$branch" "$worktree_path" "origin/main"
 fi
 
 echo "Worktree created at: $worktree_path"
