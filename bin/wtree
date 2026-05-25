@@ -19,46 +19,91 @@ repo_root=$(git rev-parse --show-toplevel)
 parent_dir=$(dirname "$repo_root")
 worktree_path="$parent_dir/$folder"
 
+needs_creation=1
 if [ -e "$worktree_path" ]; then
-  echo "Error: $worktree_path already exists" >&2
-  exit 1
-fi
-
-git fetch
-
-existing_worktree=$(git worktree list --porcelain | awk -v b="refs/heads/$branch" '
-  /^worktree / { path=$2 }
-  $0 == "branch " b { print path; exit }
-')
-if [ -n "$existing_worktree" ]; then
-  echo "Error: branch '$branch' is already checked out at $existing_worktree" >&2
-  exit 1
-fi
-
-if git show-ref --verify --quiet "refs/heads/$branch"; then
-  if [ -n "$source_branch" ]; then
-    echo "Error: branch '$branch' already exists locally; refusing to override with source branch '$source_branch'" >&2
+  is_worktree=$(git worktree list --porcelain | awk -v p="$worktree_path" '
+    $0 == "worktree " p { print "yes"; exit }
+  ')
+  if [ -z "$is_worktree" ]; then
+    echo "Error: $worktree_path exists but is not a registered git worktree" >&2
     exit 1
   fi
-  git worktree add "$worktree_path" "$branch"
-elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-  if [ -n "$source_branch" ]; then
-    echo "Error: branch '$branch' already exists on origin; refusing to override with source branch '$source_branch'" >&2
+
+  existing_branch_ref=$(git worktree list --porcelain | awk -v p="$worktree_path" '
+    $0 == "worktree " p { found=1; next }
+    found && /^worktree / { exit }
+    found && $1 == "branch" { print $2; exit }
+  ')
+  existing_branch="${existing_branch_ref#refs/heads/}"
+  if [ -z "$existing_branch" ]; then
+    echo "Error: $worktree_path is a worktree on detached HEAD, not on '$branch'" >&2
     exit 1
   fi
-  git worktree add -b "$branch" "$worktree_path" "origin/$branch"
-elif [ -n "$source_branch" ]; then
-  git worktree add -b "$branch" "$worktree_path" "$source_branch"
-else
-  git worktree add -b "$branch" "$worktree_path" "origin/main"
+  if [ "$existing_branch" != "$branch" ]; then
+    echo "Error: $worktree_path is a worktree for '$existing_branch', not '$branch'" >&2
+    exit 1
+  fi
+  if [ -n "$source_branch" ]; then
+    echo "Note: worktree already exists; ignoring source branch '$source_branch'" >&2
+  fi
+
+  echo "Worktree already exists at: $worktree_path"
+  needs_creation=0
 fi
 
-echo "Worktree created at: $worktree_path"
+if [ "$needs_creation" -eq 1 ]; then
+  git fetch
+
+  existing_worktree=$(git worktree list --porcelain | awk -v b="refs/heads/$branch" '
+    /^worktree / { path=$2 }
+    $0 == "branch " b { print path; exit }
+  ')
+  if [ -n "$existing_worktree" ]; then
+    echo "Error: branch '$branch' is already checked out at $existing_worktree" >&2
+    exit 1
+  fi
+
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    if [ -n "$source_branch" ]; then
+      echo "Error: branch '$branch' already exists locally; refusing to override with source branch '$source_branch'" >&2
+      exit 1
+    fi
+    git worktree add "$worktree_path" "$branch"
+  elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    if [ -n "$source_branch" ]; then
+      echo "Error: branch '$branch' already exists on origin; refusing to override with source branch '$source_branch'" >&2
+      exit 1
+    fi
+    git worktree add -b "$branch" "$worktree_path" "origin/$branch"
+  elif [ -n "$source_branch" ]; then
+    git worktree add -b "$branch" "$worktree_path" "$source_branch"
+  else
+    git worktree add -b "$branch" "$worktree_path" "origin/main"
+  fi
+
+  echo "Worktree created at: $worktree_path"
+fi
 
 if command -v mise >/dev/null 2>&1; then
   mise trust "$worktree_path"
 fi
 
 if command -v cmux >/dev/null 2>&1; then
-  cmux new-workspace --name "$folder" --cwd "$worktree_path"
+  has_workspace=0
+  if command -v jq >/dev/null 2>&1; then
+    while IFS= read -r window_ref; do
+      [ -z "$window_ref" ] && continue
+      if cmux rpc workspace.list "{\"window\":\"$window_ref\"}" 2>/dev/null \
+        | jq -e --arg p "$worktree_path" '.workspaces[] | select(.current_directory == $p)' >/dev/null; then
+        has_workspace=1
+        break
+      fi
+    done < <(cmux rpc window.list 2>/dev/null | jq -r '.windows[].ref // empty')
+  fi
+
+  if [ "$has_workspace" -eq 1 ]; then
+    echo "cmux workspace already exists for: $worktree_path"
+  else
+    cmux new-workspace --name "$folder" --cwd "$worktree_path"
+  fi
 fi

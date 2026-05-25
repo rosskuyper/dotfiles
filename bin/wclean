@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for cmd in cmux jq fzf; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: $cmd is required" >&2
+    exit 1
+  fi
+done
+
+cmux_cwds=()
+while IFS= read -r window_ref; do
+  [ -z "$window_ref" ] && continue
+  while IFS= read -r cwd; do
+    [ -n "$cwd" ] && cmux_cwds+=("$cwd")
+  done < <(cmux rpc workspace.list "{\"window\":\"$window_ref\"}" 2>/dev/null \
+    | jq -r '.workspaces[].current_directory // empty')
+done < <(cmux rpc window.list 2>/dev/null | jq -r '.windows[].ref // empty')
+
+all_paths=()
+all_branches=()
+main_worktree=""
+current_path=""
+current_branch="(detached)"
+
+flush_worktree() {
+  [ -z "$current_path" ] && return
+  all_paths+=("$current_path")
+  all_branches+=("$current_branch")
+  [ -z "$main_worktree" ] && main_worktree="$current_path"
+  current_path=""
+  current_branch="(detached)"
+}
+
+while IFS= read -r line; do
+  case "$line" in
+    "worktree "*)
+      flush_worktree
+      current_path="${line#worktree }"
+      ;;
+    "branch "*)
+      current_branch="${line#branch refs/heads/}"
+      ;;
+  esac
+done < <(git worktree list --porcelain)
+flush_worktree
+
+if [ "${#all_paths[@]}" -eq 0 ]; then
+  echo "No worktrees found." >&2
+  exit 1
+fi
+
+candidate_paths=()
+candidate_branches=()
+i=0
+while [ "$i" -lt "${#all_paths[@]}" ]; do
+  wt="${all_paths[$i]}"
+  br="${all_branches[$i]}"
+  i=$((i + 1))
+  [ "$wt" = "$main_worktree" ] && continue
+  in_cmux=0
+  for cwd in "${cmux_cwds[@]+"${cmux_cwds[@]}"}"; do
+    case "$cwd" in
+      "$wt"|"$wt"/*) in_cmux=1; break ;;
+    esac
+  done
+  if [ "$in_cmux" -eq 0 ]; then
+    candidate_paths+=("$wt")
+    candidate_branches+=("$br")
+  fi
+done
+
+if [ "${#candidate_paths[@]}" -eq 0 ]; then
+  echo "No worktrees to clean up."
+  exit 0
+fi
+
+# Build mtime-sorted list (most recent first), formatted for fzf:
+#   "<mtime>\t<branch>\t<path>"
+# We strip mtime before display via fzf --with-nth.
+sorted=$(
+  i=0
+  while [ "$i" -lt "${#candidate_paths[@]}" ]; do
+    wt="${candidate_paths[$i]}"
+    branch="${candidate_branches[$i]}"
+    i=$((i + 1))
+    mtime=$(stat -f "%m" "$wt" 2>/dev/null || echo 0)
+    printf '%s\t%s\t%s\n' "$mtime" "$branch" "$wt"
+  done | sort -rn
+)
+
+selection=$(
+  printf '%s\n' "$sorted" | fzf \
+    --multi \
+    --no-sort \
+    --delimiter='\t' \
+    --with-nth=2.. \
+    --header=$'TAB toggle  ·  Ctrl-A all  ·  Ctrl-D none  ·  Enter confirm  ·  Esc cancel\n' \
+    --bind='ctrl-a:select-all,ctrl-d:deselect-all' \
+    --height=~80% \
+    --reverse \
+    --prompt='worktrees to remove > '
+) || { echo "Aborted."; exit 0; }
+
+if [ -z "$selection" ]; then
+  echo "Nothing selected."
+  exit 0
+fi
+
+chosen=()
+while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  chosen+=("${line##*$'\t'}")
+done <<< "$selection"
+
+failed=()
+failed_reasons=()
+for wt in "${chosen[@]}"; do
+  echo "Removing $wt..."
+  if err=$(git worktree remove "$wt" 2>&1); then
+    echo "  removed"
+  else
+    failed+=("$wt")
+    first_line=$(printf '%s\n' "$err" | head -1)
+    failed_reasons+=("$first_line")
+    echo "  skipped: $first_line"
+  fi
+done
+
+if [ "${#failed[@]}" -gt 0 ]; then
+  echo ""
+  echo "These worktrees need attention before they can be cleaned up:"
+  i=0
+  while [ "$i" -lt "${#failed[@]}" ]; do
+    echo "  ${failed[$i]}"
+    echo "    ${failed_reasons[$i]}"
+    i=$((i + 1))
+  done
+  exit 1
+fi
