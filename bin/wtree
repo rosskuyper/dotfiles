@@ -1,8 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ $# -lt 1 ] || [ $# -gt 2 ]; then
-  echo "Usage: wtree <branch> [<sourceBranch>]" >&2
+if [ $# -eq 0 ]; then
+  if ! command -v fzf >/dev/null 2>&1; then
+    echo "Error: fzf is required when invoking wtree without a branch argument" >&2
+    exit 1
+  fi
+  git rev-parse HEAD >/dev/null 2>&1 || { echo "Error: not inside a git repo" >&2; exit 1; }
+
+  picked=$(git branch --color=always --sort=-committerdate |
+    grep -v HEAD |
+    fzf --height 30 --ansi --no-multi --preview-window 'right,65%' \
+      --preview 'git log -n 28 --color=always --reverse --date=short --pretty="format:%C(auto)%cd %h%d %s" $(sed "s/.* //" <<< {})' |
+    sed "s/.* //") || true
+
+  if [ -z "$picked" ]; then
+    echo "No branch selected." >&2
+    exit 0
+  fi
+
+  set -- "$picked"
+fi
+
+if [ $# -gt 2 ]; then
+  echo "Usage: wtree [<branch>] [<sourceBranch>]" >&2
   exit 1
 fi
 
