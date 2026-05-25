@@ -1,8 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ $# -eq 0 ]; then
+  if ! command -v fzf >/dev/null 2>&1; then
+    echo "Error: fzf is required when invoking wrun without a branch argument" >&2
+    exit 1
+  fi
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Error: not inside a git repository" >&2
+    exit 1
+  fi
+
+  main_path=$(git rev-parse --show-toplevel)
+  candidates=$(git worktree list --porcelain | awk '
+    /^worktree / { path = substr($0, 10); next }
+    /^branch refs\/heads\// { print substr($0, 19) "\t" path }
+  ' | awk -F'\t' -v m="$main_path" '$2 != m')
+
+  if [ -z "$candidates" ]; then
+    echo "No worktrees to choose from." >&2
+    exit 1
+  fi
+
+  picked=$(printf '%s\n' "$candidates" | fzf \
+    --delimiter=$'\t' \
+    --with-nth=1 \
+    --no-multi \
+    --height=30 \
+    --preview-window='right,65%' \
+    --preview='git log -n 28 --color=always --reverse --date=short --pretty="format:%C(auto)%cd %h%d %s" {1}' \
+    --prompt='worktree > ' \
+    | cut -f1) || true
+
+  if [ -z "$picked" ]; then
+    echo "No worktree selected." >&2
+    exit 0
+  fi
+
+  set -- "$picked"
+fi
+
 if [ $# -ne 1 ]; then
-  echo "Usage: wrun <branch>" >&2
+  echo "Usage: wrun [<branch>]" >&2
   exit 1
 fi
 
