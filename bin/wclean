@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+force=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -f|--force) force=1; shift ;;
+    -h|--help)
+      echo "Usage: wclean [-f|--force]"
+      echo ""
+      echo "  -f, --force  force-remove worktrees even if they contain"
+      echo "               modified or untracked files (no prompt)"
+      exit 0
+      ;;
+    *) echo "Error: unknown argument: $1" >&2; echo "Usage: wclean [-f|--force]" >&2; exit 1 ;;
+  esac
+done
+
 for cmd in cmux jq fzf; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "Error: $cmd is required" >&2
@@ -117,14 +132,50 @@ failed=()
 failed_reasons=()
 for wt in "${chosen[@]}"; do
   echo "Removing $wt..."
+
+  if [ "$force" -eq 1 ]; then
+    if err=$(git worktree remove --force "$wt" 2>&1); then
+      echo "  removed (forced)"
+    else
+      failed+=("$wt")
+      first_line=$(printf '%s\n' "$err" | head -1)
+      failed_reasons+=("$first_line")
+      echo "  skipped: $first_line"
+    fi
+    continue
+  fi
+
   if err=$(git worktree remove "$wt" 2>&1); then
     echo "  removed"
+    continue
+  fi
+
+  first_line=$(printf '%s\n' "$err" | head -1)
+
+  # If it only failed because of modified/untracked files, offer to force it.
+  if printf '%s' "$err" | grep -q -- "--force"; then
+    echo "  $first_line"
+    reply=""
+    read -r -p "  Force-remove $wt? [y/N] " reply </dev/tty || reply=""
+    case "$reply" in
+      [yY]|[yY][eE][sS])
+        if err=$(git worktree remove --force "$wt" 2>&1); then
+          echo "  removed (forced)"
+          continue
+        fi
+        first_line=$(printf '%s\n' "$err" | head -1)
+        echo "  skipped: $first_line"
+        ;;
+      *)
+        echo "  skipped (declined force)"
+        ;;
+    esac
   else
-    failed+=("$wt")
-    first_line=$(printf '%s\n' "$err" | head -1)
-    failed_reasons+=("$first_line")
     echo "  skipped: $first_line"
   fi
+
+  failed+=("$wt")
+  failed_reasons+=("$first_line")
 done
 
 if [ "${#failed[@]}" -gt 0 ]; then
