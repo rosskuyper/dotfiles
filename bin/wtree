@@ -103,6 +103,12 @@ if [ "$needs_creation" -eq 1 ]; then
   fi
 
   echo "Worktree created at: $worktree_path"
+
+  if [ -d "$repo_root/.claude" ]; then
+    mkdir -p "$worktree_path/.claude"
+    cp -R "$repo_root/.claude/." "$worktree_path/.claude/"
+    echo "Copied .claude settings into: $worktree_path/.claude"
+  fi
 fi
 
 if command -v mise >/dev/null 2>&1; then
