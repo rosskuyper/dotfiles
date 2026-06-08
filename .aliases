@@ -170,6 +170,7 @@ alias gfr="git fetch origin && git rebase origin/main"
 alias gsb="git checkout -"
 alias gc="git checkout"
 alias gf="git fetch"
+alias grh="git reset --hard"
 
 alias cc="caffeinate claude"
 alias ccp="CLAUDE_CONFIG_DIR=~/.claude-personal caffeinate claude"
