@@ -208,8 +208,23 @@ function killport() {
   printf "\n----Listing services on $port----\n\n";
   lsof -n -i "4TCP:$port";
 
+  if [[ -z "$(lsof -t -n -i "4TCP:$port")" ]]; then
+    printf "\nNothing to kill on $port\n";
+    return;
+  fi
+
   printf "\n----Attempting to kill services on $port----\n\n";
-  lsof -n -i "4TCP:$port" | awk 'NR > 1 {print $2}' | xargs kill -15;
+  lsof -t -n -i "4TCP:$port" | xargs kill -15 2> /dev/null;
+
+  # Give processes a moment to exit cleanly, then force-kill stragglers
+  local i;
+  for i in 1 2 3 4; do
+    sleep 0.5;
+    [[ -z "$(lsof -t -n -i "4TCP:$port")" ]] && return;
+  done
+
+  printf "Still alive after SIGTERM, sending SIGKILL\n";
+  lsof -t -n -i "4TCP:$port" | xargs kill -9 2> /dev/null;
 }
 
 function listening() {
