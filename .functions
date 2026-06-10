@@ -209,7 +209,7 @@ function killport() {
   lsof -n -i "4TCP:$port";
 
   printf "\n----Attempting to kill services on $port----\n\n";
-  lsof -n -i "4TCP:$port" | awk 'NR > 1 {print \$2}' | xargs kill -15;
+  lsof -n -i "4TCP:$port" | awk 'NR > 1 {print $2}' | xargs kill -15;
 }
 
 function listening() {
@@ -224,4 +224,9 @@ function kill8080() {
 
 function kill8000() {
   killport 8000;
+}
+
+# Pipecat doesn't always exit properly, so kill whatever is left on its port
+function killpipecat() {
+  killport 7860;
 }
