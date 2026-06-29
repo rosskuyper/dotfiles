@@ -104,10 +104,18 @@ if [ "$needs_creation" -eq 1 ]; then
 
   echo "Worktree created at: $worktree_path"
 
+  # git worktree add already checks out all *tracked* .claude content (rules and
+  # skill symlinks) for the new branch. Only carry over local-only, gitignored
+  # settings that are not in version control. Never use a symlink-following copy.
   if [ -d "$repo_root/.claude" ]; then
-    mkdir -p "$worktree_path/.claude"
-    cp -R "$repo_root/.claude/." "$worktree_path/.claude/"
-    echo "Copied .claude settings into: $worktree_path/.claude"
+    for rel in settings.local.json; do
+      src="$repo_root/.claude/$rel"
+      if [ -f "$src" ]; then
+        mkdir -p "$worktree_path/.claude/$(dirname "$rel")"
+        cp -p "$src" "$worktree_path/.claude/$rel"
+        echo "Copied local .claude/$rel into worktree"
+      fi
+    done
   fi
 fi
 
