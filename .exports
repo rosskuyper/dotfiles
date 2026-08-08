@@ -60,3 +60,5 @@ export PNPM_HOME="/Users/ross/Library/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
 export CLAUDE_PLUGINS_REPO=git@github.com:mazedesignhq/claude-plugins.git
+
+export PATH="$HOME/.local/bin:$PATH"
