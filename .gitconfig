@@ -186,12 +186,13 @@
 
 [gpg]
 
-  program = gpg
+  program = /opt/homebrew/bin/gpg
 
 [user]
 
   name = Ross Kuyper
   email = ross@rosskuyper.com
+  signingkey = B40C00D5A965E60398EF3D4AAA16CD8E382E6BFD
 
 [pull]
 
