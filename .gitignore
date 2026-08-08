@@ -13,5 +13,6 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 
-# Claude Code local settings
-.claude/settings.local.json
+# Claude Code: the statusline script is the only tracked file in .claude
+.claude/*
+!.claude/statusline-command.sh

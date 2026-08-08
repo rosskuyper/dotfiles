@@ -10,7 +10,8 @@ function showDiff() {
 		--exclude ".DS_Store" \
 		--exclude ".vscode" \
 		--exclude ".osx" \
-		--exclude ".claude/" \
+		--include ".claude/statusline-command.sh" \
+		--exclude ".claude/*" \
 		--exclude "bootstrap.sh" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
@@ -61,7 +62,8 @@ function doIt() {
 		--exclude ".DS_Store" \
 		--exclude ".vscode" \
 		--exclude ".osx" \
-		--exclude ".claude/" \
+		--include ".claude/statusline-command.sh" \
+		--exclude ".claude/*" \
 		--exclude "bootstrap.sh" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
