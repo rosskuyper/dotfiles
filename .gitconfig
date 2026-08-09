@@ -184,15 +184,24 @@
 
 	defaultBranch = main
 
-[gpg]
-
-  program = /opt/homebrew/bin/gpg
-
 [user]
 
   name = Ross Kuyper
   email = ross@rosskuyper.com
-  signingkey = B40C00D5A965E60398EF3D4AAA16CD8E382E6BFD
+
+  # Every machine uses this same key for git over SSH, signing included.
+  signingkey = ~/.ssh/ross_id_rsa.pub
+
+[gpg]
+
+  # Sign with SSH rather than GPG: reuses the key already used for git@github.com,
+  # so there is no keyring to manage per machine.
+  format = ssh
+
+[gpg "ssh"]
+
+  # Public keys trusted when verifying locally, e.g. git log --show-signature.
+  allowedSignersFile = ~/.config/git/allowed_signers
 
 [pull]
 
@@ -208,3 +217,8 @@
 
 [credential "https://gist.github.com"]
 	helper = !/opt/homebrew/bin/gh auth git-credential
+
+# Per-machine overrides. Untracked, and silently ignored when absent, so a new
+# machine works without it. Last include wins, so keep this at the end.
+[include]
+	path = ~/.gitconfig.local
