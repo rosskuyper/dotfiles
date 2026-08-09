@@ -13,6 +13,9 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 
-# Claude Code: the statusline script is the only tracked file in .claude
+# Claude Code: only the statusline script and the settings baseline are tracked.
+# settings.json is deep-merged into ~/.claude/settings.json by bootstrap.sh
+# rather than copied, so machine-local changes there survive.
 .claude/*
 !.claude/statusline-command.sh
+!.claude/settings.json
