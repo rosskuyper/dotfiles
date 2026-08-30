@@ -21,6 +21,15 @@ shopt -s nocaseglob;
 # Append to the Bash history file, rather than overwriting it
 shopt -s histappend;
 
+# Why: Orca exports a per-worktree HISTFILE but only its zsh wrapper ever
+# creates or flushes that file, so bash panes start with no history at all.
+# Point back at the shared history file this config already configures.
+[ -n "${ORCA_HISTFILE:-}" ] && [ "${HISTFILE:-}" = "$ORCA_HISTFILE" ] && HISTFILE="$HOME/.bash_history";
+
+# Why: flush each command as it is entered, not at exit — Orca kills panes
+# rather than exiting them, so an exit-time write never happens.
+PROMPT_COMMAND="history -a${PROMPT_COMMAND:+; $PROMPT_COMMAND}";
+
 # Autocorrect typos in path names when using `cd`
 shopt -s cdspell;
 
