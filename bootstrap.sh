@@ -81,6 +81,7 @@ function showDiff() {
 		--include ".claude/statusline-command.sh" \
 		--exclude ".claude/*" \
 		--exclude "bootstrap.sh" \
+		--exclude "CLAUDE.md" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
 		-avh --dry-run --itemize-changes --no-perms . ~ 2>/dev/null \
@@ -147,6 +148,7 @@ function doIt() {
 		--include ".claude/statusline-command.sh" \
 		--exclude ".claude/*" \
 		--exclude "bootstrap.sh" \
+		--exclude "CLAUDE.md" \
 		--exclude "README.md" \
 		--exclude "LICENSE-MIT.txt" \
 		-avh --no-perms . ~;
