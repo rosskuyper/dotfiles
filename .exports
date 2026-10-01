@@ -62,3 +62,6 @@ export PATH="$PNPM_HOME:$PATH"
 export CLAUDE_PLUGINS_REPO=git@github.com:mazedesignhq/claude-plugins.git
 
 export PATH="$HOME/.local/bin:$PATH"
+
+# Don't let orca control codex sessions in a way that breaks remote control
+export ORCA_CODEX_ISOLATE=0
